@@ -11,25 +11,35 @@ enum OpType {
     Sub,
 }
 
-fn to_str(op: OpType) -> &'static str {
-    match op {
-        OpType::Add => "+",
-        OpType::Sub => "-",
+impl OpType { 
+    fn to_str(self) -> &'static str {
+        match self {
+            OpType::Add => "+",
+            OpType::Sub => "-",
+        }
     }
+
+    fn do_op(self: Self, a: i32, b: i32) -> i32 {
+        match self {
+            OpType::Add => a+b,
+            OpType::Sub => a-b,
+        }
+    }
+} 
+
+fn old_do_input() -> i32 {    
+    read!()
 }
 
-fn do_op(op: OpType, a: i32, b: i32) -> i32 {
-    match op {
-        OpType::Add => a+b,
-        OpType::Sub => a-b,
-    }
+fn do_input() -> i32 {    
+    read!()
 }
 
 fn main() {
 
     let mut good = 0;
     let mut bad = 0;
-    let mut input: i32 = 69;
+    let mut input: i32;
     let start = Instant::now();
     let mut rng = rand::thread_rng();
     let mut end = false;
@@ -42,12 +52,12 @@ fn main() {
 
         println!();
         println!("  {:>2}", a);
-        println!("{} {:>2}", to_str(op), b);
+        println!("{} {:>2}", op.to_str(), b);
         println!("------");
         
-        input = read!();
+        input = do_input();
         
-        if input == do_op(op, a, b) {
+        if input == op.do_op(a, b) {
             good = good+1;
         } else {
             bad = bad+1;
