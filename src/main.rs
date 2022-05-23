@@ -129,7 +129,7 @@ fn main() {
             bad = bad + 1;
         }
 
-        if start.elapsed().as_secs() > 60 * 1 {
+        if start.elapsed().as_secs() > 60 * 2 {
             end = true;
             println!();
             println!("Respuestas:");
