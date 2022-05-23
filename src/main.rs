@@ -1,11 +1,12 @@
-use crossterm::cursor::MoveToNextLine;
+use chrono::prelude::*;
 use rand::Rng;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
+use std::io::stdout;
 use std::time::Instant;
 
-use std::io::stdout;
-
 use crossterm::{
-    cursor::{MoveLeft, MoveRight},
+    cursor::{MoveLeft, MoveRight, MoveToNextLine},
     event::{read, Event, KeyCode},
     execute,
     style::Print,
@@ -53,13 +54,13 @@ fn do_input() -> i32 {
     )
     .ok();
 
-    enable_raw_mode();
+    enable_raw_mode().unwrap();
 
     loop {
         let event = read().unwrap();
 
         if event == Event::Key(KeyCode::Esc.into()) {
-            disable_raw_mode();
+            disable_raw_mode().unwrap();
             std::process::exit(0);
         }
 
@@ -71,9 +72,11 @@ fn do_input() -> i32 {
         }
 
         if event == Event::Key(KeyCode::Enter.into()) {
-            execute!(stdout(), MoveToNextLine(1)).ok();
-            println!();
-            break;
+            if input.len() > 0 {
+                execute!(stdout(), MoveToNextLine(1)).ok();
+                println!();
+                break;
+            }
         }
 
         match event {
@@ -81,8 +84,10 @@ fn do_input() -> i32 {
                 if c.code >= KeyCode::Char('0') && c.code <= KeyCode::Char('9') {
                     match c.code {
                         KeyCode::Char(ch) => {
-                            input.insert(0, ch);
-                            execute!(stdout(), Print(ch), MoveLeft(2),).ok();
+                            if input.len() < 3 {
+                                input.insert(0, ch);
+                                execute!(stdout(), Print(ch), MoveLeft(2),).ok();
+                            }
                         }
                         _ => (),
                     }
@@ -92,7 +97,7 @@ fn do_input() -> i32 {
         }
     }
 
-    disable_raw_mode();
+    disable_raw_mode().unwrap();
     input.parse().unwrap()
 }
 
@@ -131,7 +136,18 @@ fn main() {
             println!("Totales:   {}", good + bad);
             println!("Correctas: {}", good);
 
-            //TODO Guardar log en archivo
+            let mut file_name = home::home_dir().unwrap();
+            file_name.push(".sumeitor");
+            let mut file = OpenOptions::new()
+                .write(true)
+                .append(true)
+                .create(true)
+                .open(file_name)
+                .unwrap();
+
+            if let Err(e) = writeln!(file, "{} {} {}", Local::now(), good, bad) {
+                eprintln!("Couldn't write to file: {}", e);
+            }
         }
     }
 }
